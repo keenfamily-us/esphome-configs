@@ -1,0 +1,6 @@
+packages:
+  device_base: !include device_base.yaml
+
+esphome:
+  platform: ESP8266
+  board: esp8285

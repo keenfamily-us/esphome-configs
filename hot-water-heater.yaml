@@ -1,0 +1,35 @@
+substitutions:
+  node_name: "hot-water-heater"
+  display_name: "Hot Water Heater"
+
+packages:
+  device_base: !include common/device_base.yaml
+  web_server: !include common/web_server.yaml
+  power_meter: !include
+    file: common/glow.yaml
+    vars:
+      sensor_name: "DHW"
+      sensor_id: "dhw"
+      pin_number: GPIO7
+
+wifi:
+  manual_ip:
+    static_ip: 10.73.95.44
+    gateway: 10.73.95.1
+    subnet: 255.255.255.0
+
+esp32:
+  board: esp32-c3-devkitm-1
+  framework:
+    type: arduino
+
+dallas:
+  - pin: GPIO3
+    update_interval: 10s
+
+sensor:
+  - platform: dallas
+    index: 0
+    name: "Recirculation Return Temp"
+    filters:
+      - filter_out: NAN

@@ -1,0 +1,21 @@
+substitutions:
+  node_name: "dte-meters"
+  display_name: "DTE Meters"
+
+packages:
+  esp32_c3_devkit_m1: !include common/esp32dev.yaml
+  web_server: !include common/web_server.yaml
+
+  house_meter: !include
+    file: common/glow.yaml
+    vars:
+      pin_number: GPIO13
+      sensor_name: "House"
+      sensor_id: "house"
+
+  geothermal_meter: !include
+    file: common/glow.yaml
+    vars:
+      pin_number: GPIO18
+      sensor_name: "Geothermal"
+      sensor_id: "geothermal"

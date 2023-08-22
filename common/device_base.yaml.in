@@ -1,0 +1,61 @@
+substitutions:
+  wifi_ssid: "op://keen.land secrets/ESPHome Secrets/ESPHOME_WIFI_SSID"
+  wifi_password: "op://keen.land secrets/ESPHome Secrets/ESPHOME_WIFI_PASSWORD"
+  fallback_ssid_password: "op://keen.land secrets/ESPHome Secrets/ESPHOME_FALLBACK_SSID_PASSWORD"
+  home_assistant_encryption_key: "op://keen.land secrets/ESPHome Secrets/ESPHOME_HOME_ASSISTANT_ENCRYPTION_KEY"
+  ota_password: "op://keen.land secrets/ESPHome Secrets/ESPHOME_OTA_PASSWORD"
+
+esphome:
+  name: ${node_name}
+  friendly_name: ${display_name}
+  name_add_mac_suffix: false
+
+api:
+  encryption:
+    key: ${home_assistant_encryption_key}
+
+wifi:
+  ssid: ${wifi_ssid}
+  password: ${wifi_password}
+
+  ap:
+    ssid: "${node_name}-ap"
+    password: ${fallback_ssid_password}
+
+captive_portal:
+
+logger:
+
+ota:
+  password: ${ota_password}
+
+switch:
+  - platform: safe_mode
+    name: "Flash Mode (Safe Mode)"
+    icon: "mdi:cellphone-arrow-down"
+
+button:
+  - platform: restart
+    id: button_restart
+    name: "Restart"
+    disabled_by_default: true
+
+binary_sensor:
+  - platform: status
+    name: "${display_name} Status"
+
+sensor:
+  - platform: uptime
+    id: uptime_sensor
+    name: "Uptime Sensor"
+    update_interval: 1min
+
+  - platform: wifi_signal
+    id: wifi_strength
+    name: "Wifi Strength"
+    update_interval: 1min
+
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+    timezone: "America/Detroit"

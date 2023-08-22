@@ -1,0 +1,6 @@
+packages:
+  device_base: !include device_base.yaml
+
+esp32:
+  board: esp32dev
+

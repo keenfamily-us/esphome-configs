@@ -1,0 +1,338 @@
+# Airgradient Open Air Outdoor v1.1 presoldered
+#
+# @llamagecko, @Hendrik, @spectrumjade, and @ex-nerd from AirGradient forum
+# did most of the work for this integration, see the following thread:
+# https://forum.airgradient.com/t/outdoor-monitor-esphome-configuration/823
+#
+# Upstream AirGradient Firmware can be found here:
+# https://github.com/airgradienthq/arduino/blob/master/examples/DIY_OUTDOOR_C3/DIY_OUTDOOR_C3.ino
+#
+
+substitutions:
+  id: "1"
+  node_name: "airgradient-open-air"
+  display_name: "AirGradient Open Air"
+  upper_devicename: ${display_name}
+  devicename: ${node_name}
+  # Only trigger the particle sensor every 3 minutes so it can go into sleep mode and extend its operational lifetime.
+  # Here as a substitution mostly to ensure consistent use in this file (several calculations rely on this 3min value).
+  pm_update_interval: "3min"
+
+packages:
+  device_base: !include common/esp32_c3_devkit_m1.yaml
+  web_server: !include common/web_server.yaml
+
+globals:
+  - id: aqi_delay_mins
+    type: int
+    restore_value: no
+    # AQI is calculated over a 24 hour minimum, but EPA says it's acceptable to
+    # report at 75%, or 18 hours: https://forum.airnowtech.org/t/aqi-calculations-overview-ozone-pm2-5-and-pm10/168
+    initial_value: '1080'
+  - id: nowcast_delay_mins
+    type: int
+    restore_value: no
+    # NowCast is calculated over a 12 hour period
+    initial_value: '720'
+  - id: pm_2_5_hourly_avg
+    type: std::vector<float>
+    restore_value: no
+  - id: pm_10_0_hourly_avg
+    type: std::vector<float>
+    restore_value: no
+
+esphome:
+  name: "${devicename}-${id}"
+  friendly_name: "${upper_devicename} ${id}"
+  # Automatically add the mac address to the name
+  # so you can use a single firmware for all devices
+  # name_add_mac_suffix: true
+
+# Used to support POST request to send data to AirGradient
+# https://esphome.io/components/http_request.html
+http_request:
+
+output:
+  - platform: gpio
+    id: watchdog
+    pin: GPIO2
+
+interval:
+  # Reset hardware watchdog. This varies between hardware. 3min should be plenty.
+  - interval: 3min
+    then:
+      - output.turn_on: watchdog
+      - delay: 20ms
+      - output.turn_off: watchdog
+
+  # Send data to AirGradient API server
+  # for more details have a look at sendToServer() function:
+  # https://www.airgradient.com/open-airgradient/blog/airgradient-diy-pro-instructions/
+  - interval: 5min
+    then:
+      - http_request.post:
+          # AirGradient URL with full MAC address in Hex format all lower case
+          url: !lambda |
+            return "http://hw.airgradient.com/sensors/airgradient:" + get_mac_address() + "/measures";
+          headers:
+            Content-Type: application/json
+          # "!lambda return to_string(id(pm2).state);" Converts sensor output from double to string
+          # Note: can't use the built-in json encoder here because it does not support nested objects.
+          body: !lambda |
+            String jsonString;
+            StaticJsonDocument<1024> doc;
+
+            doc["wifi"] = id(airgradient_wifi_signal).state;
+
+            doc["pm01"] = to_string(id(pm_1_0).state);
+            doc["pm02"] = to_string(id(pm_2_5).state);
+            doc["pm10"] = to_string(id(pm_10_0).state);
+            doc["pm003_count"] = to_string(id(pm_0_3um).state);
+            doc["atmp"] = to_string(id(temperature).state);
+            doc["rhum"] = to_string(id(humidity).state);
+
+            // We don't have access to the boot loop counter in esphome, so just send a 1
+            // See: https://github.com/esphome/issues/issues/1539
+            doc["boot"] = "1"; 
+
+            JsonObject channels = doc.createNestedObject("channels");
+
+            JsonObject channels_1 = channels.createNestedObject("1");
+            channels_1["pm01"] = to_string(id(pm1_1_0).state);
+            channels_1["pm02"] = to_string(id(pm1_2_5).state);
+            channels_1["pm10"] = to_string(id(pm1_10_0).state);
+            channels_1["pm003_count"] = to_string(id(pm1_0_3um).state);
+            channels_1["atmp"] = to_string(id(pm1_temperature).state);
+            channels_1["rhum"] = to_string(id(pm1_humidity).state);
+
+            JsonObject channels_2 = channels.createNestedObject("2");
+            channels_2["pm01"] = to_string(id(pm2_1_0).state);
+            channels_2["pm02"] = to_string(id(pm2_2_5).state);
+            channels_2["pm10"] = to_string(id(pm2_10_0).state);
+            channels_2["pm003_count"] = to_string(id(pm2_0_3um).state);
+            channels_2["atmp"] = to_string(id(pm2_temperature).state);
+            channels_2["rhum"] = to_string(id(pm2_humidity).state);
+
+            // Serialize the JSON document into the string
+            serializeJson(doc, jsonString);
+
+            // Convert String to std::string
+            std::string stdJsonString(jsonString.c_str());
+
+            return stdJsonString;
+
+
+light:
+  - platform: status_led
+    name: "Status LED"
+    pin: GPIO10
+
+binary_sensor:
+  - platform: gpio
+    name: "Button"
+    pin:
+      number: GPIO9
+      inverted: true
+      mode:
+        input: true
+        pullup: true
+    on_click:
+      min_length: 5s
+      max_length: 10s
+      then:
+        - button.press: button_restart
+
+i2c:
+  sda: GPIO7 # Pin 21
+  scl: GPIO6 # Pin 20
+  scan: false
+
+uart:
+  - id: uart_pm1
+    baud_rate: 9600
+    rx_pin: GPIO20 # Pin 30 / RXD0
+    tx_pin: GPIO21 # Pin 31 / TXD0
+  - id: uart_pm2
+    baud_rate: 9600
+    rx_pin: GPIO0 # Pin 12
+    tx_pin: GPIO1 # Pin 13
+
+text_sensor:
+  - platform: template
+    id: aqi_category
+    name: "${upper_devicename} AQI Category"
+    icon: "mdi:weather-windy-variant"
+    update_interval: 15min
+
+  - platform: template
+    id: nowcast_category
+    name: "${upper_devicename} NowCast Category"
+    icon: "mdi:weather-windy-variant"
+    update_interval: 15min
+
+sensor:
+  - platform: pmsx003
+    type: PMS5003T
+    uart_id: uart_pm1
+    update_interval: $pm_update_interval
+    pm_1_0:
+      id: pm1_1_0
+      name: "${upper_devicename} Particulate Matter <1.0µm Concentration (1)"
+      disabled_by_default: true
+    pm_2_5:
+      id: pm1_2_5
+      name: "${upper_devicename} Particulate Matter <2.5µm Concentration (1)"
+      disabled_by_default: true
+    pm_10_0:
+      id: pm1_10_0
+      name: "${upper_devicename} Particulate Matter <10.0µm Concentration (1)"
+      disabled_by_default: true
+    pm_0_3um:
+      id: pm1_0_3um
+      name: "${upper_devicename} Particulate Matter >0.3µm Count (1)"
+      disabled_by_default: true
+    pm_0_5um:
+      id: pm1_0_5um
+      name: "${upper_devicename} Particulate Matter >0.5µm Count (1)"
+      disabled_by_default: true
+    pm_1_0um:
+      id: pm1_1_0um
+      name: "${upper_devicename} Particulate Matter >1.0µm Count (1)"
+      disabled_by_default: true
+    pm_2_5um:
+      id: pm1_2_5um
+      name: "${upper_devicename} Particulate Matter >2.5µm Count (1)"
+      disabled_by_default: true
+    temperature:
+      id: pm1_temperature
+      name: "${upper_devicename} Temperature (1)"
+      disabled_by_default: true
+    humidity:
+      id: pm1_humidity
+      accuracy_decimals: 1
+      name: "${upper_devicename} Relative Humidity (1)"
+      disabled_by_default: true
+
+  - platform: pmsx003
+    type: PMS5003T
+    uart_id: uart_pm2
+    update_interval: $pm_update_interval
+    pm_1_0:
+      id: pm2_1_0
+      name: "${upper_devicename} Particulate Matter <1.0µm Concentration (2)"
+      disabled_by_default: true
+    pm_2_5:
+      id: pm2_2_5
+      name: "${upper_devicename} Particulate Matter <2.5µm Concentration (2)"
+      disabled_by_default: true
+    pm_10_0:
+      id: pm2_10_0
+      name: "${upper_devicename} Particulate Matter <10.0µm Concentration (2)"
+      disabled_by_default: true
+    pm_0_3um:
+      id: pm2_0_3um
+      name: "${upper_devicename} Particulate Matter >0.3µm Count (2)"
+      disabled_by_default: true
+    pm_0_5um:
+      id: pm2_0_5um
+      name: "${upper_devicename} Particulate Matter >0.5µm Count (2)"
+      disabled_by_default: true
+    pm_1_0um:
+      id: pm2_1_0um
+      name: "${upper_devicename} Particulate Matter >1.0µm Count (2)"
+      disabled_by_default: true
+    pm_2_5um:
+      id: pm2_2_5um
+      name: "${upper_devicename} Particulate Matter >2.5µm Count (2)"
+      disabled_by_default: true
+    temperature:
+      id: pm2_temperature
+      name: "${upper_devicename} Temperature (2)"
+      disabled_by_default: true
+    humidity:
+      id: pm2_humidity
+      accuracy_decimals: 1
+      name: "${upper_devicename} Relative Humidity (2)"
+      disabled_by_default: true
+
+  # Calculate the average values across both PMS5003T sensors
+  - platform: template
+    id: temperature
+    name: "${upper_devicename} Temperature"
+    icon: mdi:thermometer
+    device_class: temperature
+    accuracy_decimals: 1
+    unit_of_measurement: "°C"
+    lambda: return (id(pm1_temperature).state + id(pm2_temperature).state) / 2.0;
+  - platform: template
+    id: humidity
+    name: "${upper_devicename} Relative Humidity"
+    icon: mdi:water-percent
+    device_class: humidity
+    accuracy_decimals: 1
+    unit_of_measurement: "%"
+    lambda: return (id(pm1_humidity).state + id(pm2_humidity).state) / 2.0;
+  - platform: template
+    id: pm_1_0
+    name: "${upper_devicename} Particulate Matter <1.0µm Concentration"
+    icon: mdi:chemical-weapon
+    device_class: pm1
+    accuracy_decimals: 0
+    unit_of_measurement: µg/m³
+    update_interval: $pm_update_interval
+    lambda: return (id(pm1_1_0).state + id(pm2_1_0).state) / 2.0;
+  - platform: template
+    id: pm_2_5
+    name: "${upper_devicename} Particulate Matter <2.5µm Concentration"
+    icon: mdi:chemical-weapon
+    device_class: pm25
+    accuracy_decimals: 0
+    unit_of_measurement: µg/m³
+    update_interval: $pm_update_interval
+    lambda: return (id(pm1_2_5).state + id(pm2_2_5).state) / 2.0;
+  - platform: template
+    id: pm_10_0
+    name: "${upper_devicename} Particulate Matter <10.0µm Concentration"
+    icon: mdi:chemical-weapon
+    device_class: pm10
+    accuracy_decimals: 0
+    unit_of_measurement: µg/m³
+    update_interval: $pm_update_interval
+    lambda: return (id(pm1_10_0).state + id(pm2_10_0).state) / 2.0;
+  - platform: template
+    id: pm_0_3um
+    name: "${upper_devicename} Particulate Matter >0.3µm Count"
+    icon: mdi:blur
+    accuracy_decimals: 0
+    unit_of_measurement: /dL
+    update_interval: $pm_update_interval
+    lambda: return (id(pm1_0_3um).state + id(pm2_0_3um).state) / 2.0;
+  - platform: template
+    id: pm_0_5um
+    name: "${upper_devicename} Particulate Matter >0.5µm Count"
+    icon: mdi:blur
+    accuracy_decimals: 0
+    unit_of_measurement: /dL
+    update_interval: $pm_update_interval
+    lambda: return (id(pm1_0_5um).state + id(pm2_0_5um).state) / 2.0;
+  - platform: template
+    id: pm_1_0um
+    name: "${upper_devicename} Particulate Matter >1.0µm Count"
+    icon: mdi:blur
+    accuracy_decimals: 0
+    unit_of_measurement: /dL
+    update_interval: $pm_update_interval
+    lambda: return (id(pm1_1_0um).state + id(pm2_1_0um).state) / 2.0;
+  - platform: template
+    id: pm_2_5um
+    name: "${upper_devicename} Particulate Matter >2.5µm Count"
+    icon: mdi:blur
+    accuracy_decimals: 0
+    unit_of_measurement: /dL
+    update_interval: $pm_update_interval
+    lambda: return (id(pm1_2_5um).state + id(pm2_2_5um).state) / 2.0;
+
+  - platform: wifi_signal
+    id: airgradient_wifi_signal
+    name: "Wifi Strength"
+    update_interval: 1min
