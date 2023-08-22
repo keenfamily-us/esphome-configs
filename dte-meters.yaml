@@ -12,6 +12,9 @@ packages:
       pin_number: GPIO13
       sensor_name: "House"
       sensor_id: "house"
+      pin_inverted: false
+      pin_pullup: false
+      pin_pulldown: false
 
   geothermal_meter: !include
     file: common/glow.yaml
@@ -19,3 +22,17 @@ packages:
       pin_number: GPIO18
       sensor_name: "Geothermal"
       sensor_id: "geothermal"
+      pin_inverted: false
+      pin_pullup: false
+      pin_pulldown: false
+
+output:
+  - platform: gpio
+    id: dummy_output
+    pin:
+      number: GPIO27
+      mode:
+        output: true
+        pullup: true
+      inverted: true
+    

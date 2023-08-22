@@ -1,3 +1,10 @@
+substitutions:
+  pin_number: "1"
+  pin_inverted: "true"
+  pin_pullup: "true"
+  pin_pulldown: "false"
+  pulses_per_kwh: "1000"
+
 sensor:
   - platform: pulse_meter
     name: '${sensor_name} Power Consumption'
@@ -9,10 +16,11 @@ sensor:
     accuracy_decimals: 0
     pin:
       number: ${pin_number}
-      inverted: true
+      inverted: ${pin_inverted}
       mode:
         input: true
-        pullup: true
+        pullup: ${pin_pullup}
+        pulldown: ${pin_pulldown}
     
     internal_filter: 100ms
     timeout: 30s
@@ -20,7 +28,7 @@ sensor:
     filters:
       # multiply value = (60 / imp value) * 1000
       # - multiply: 60
-      - lambda: return x * ((60.0 / 800) * 1000.0);
+      - lambda: return x * ((60.0 / ${pulses_per_kwh}) * 1000.0);
     total:
       name: '${sensor_name} Total Energy'
       id: ${sensor_id}_total_energy
@@ -32,7 +40,7 @@ sensor:
       filters:
         # multiply value = 1 / imp value
         # - multiply: 0.001
-        - lambda: return x * (1.0 / 800);
+        - lambda: return x * (1.0 / ${pulses_per_kwh});
 
   # Total day useage
   - platform: total_daily_energy
