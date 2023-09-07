@@ -58,6 +58,23 @@ climate:
       min_temperature: 0
     default_target_temperature_low: 28
     default_target_temperature_high: 38
-    away_config:
-      default_target_temperature_low: 0
-      default_target_temperature_high: 10
+
+text_sensor:
+  - platform: homeassistant
+    name: "House Mode"
+    entity_id: input_select.house_mode
+    id: house_mode
+    on_value:
+      - if:
+          condition:
+            text_sensor.state:
+              id: house_mode
+              state: "Home"
+          then:
+            - climate.control:
+                id: pump_thermostat
+                mode: HEAT
+          else:
+            - climate.control:
+                id: pump_thermostat
+                mode: "OFF"
