@@ -41,10 +41,11 @@ sensor:
 switch:
   - platform: gpio
     id: pump_power
+    name: "Pump Power"
     pin: 10
 
 climate:
-  - platform: thermostat
+  - platform: bang_bang
     name: "Pump Thermostat"
     id: pump_thermostat
     sensor: recirculation_return_temp
@@ -52,13 +53,11 @@ climate:
       - switch.turn_on: pump_power
     idle_action:
       - switch.turn_off: pump_power
-    heat_deadband: 5 °C
-    min_idle_time: 5s
-    min_heating_run_time: 5s
-    min_heating_off_time: 5s
-    default_preset: Home
-    preset:
-      - name: Home
-        default_target_temperature_low: 38 °C
-      - name: Away
-        default_target_temperature_low: 0 °C
+    visual:
+      max_temperature: 50
+      min_temperature: 0
+    default_target_temperature_low: 28
+    default_target_temperature_high: 38
+    away_config:
+      default_target_temperature_low: 0
+      default_target_temperature_high: 10
