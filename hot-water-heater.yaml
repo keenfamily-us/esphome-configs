@@ -52,7 +52,10 @@ climate:
       - switch.turn_on: pump_power
     idle_action:
       - switch.turn_off: pump_power
-    head_deadband: 5 °C
+    heat_deadband: 5 °C
+    min_idle_time: 5s
+    min_heating_run_time: 5s
+    min_heating_off_time: 5s
     default_preset: Home
     preset:
       - name: Home
