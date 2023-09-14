@@ -10,7 +10,7 @@ packages:
     vars:
       sensor_name: "DHW"
       sensor_id: "dhw"
-      pin_number: GPIO7
+      pin_number: GPIO8
       pin_pullup: true
       pin_inverted: true
       pulses_per_kwh: "800"
