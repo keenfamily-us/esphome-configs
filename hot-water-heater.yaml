@@ -10,10 +10,20 @@ packages:
     vars:
       sensor_name: "DHW"
       sensor_id: "dhw"
-      pin_number: GPIO8
+      pin_number: GPIO6
       pin_pullup: true
       pin_inverted: true
       pulses_per_kwh: "800"
+      internal_filter: "30ms"
+
+logger:
+  level: DEBUG
+
+wifi:
+  manual_ip:
+    static_ip: 10.73.95.44
+    gateway: 10.73.95.1
+    subnet: 255.255.255.0
 
 esp32:
   board: esp32-c3-devkitm-1
@@ -22,31 +32,105 @@ esp32:
 
 dallas:
   - pin: GPIO3
+    id: return_hub
     update_interval: 10s
+  - pin: GPIO5
+    id: supply_hub
+    update_interval: 10s    
 
 sensor:
   - platform: dallas
-    index: 0
+    address: 0x6f01193828e0db28
     name: "Recirculation Return Temp"
     id: recirculation_return_temp
+    dallas_id: return_hub
     filters:
       - filter_out: NAN
+
+  - platform: template
+    name: "Recirculation Return Temp 2min Avg"
+    id: recirculation_return_temp_2min_avg
+    update_interval: 10s
+    unit_of_measurement: "°C"    
+    device_class: temperature
+    state_class: measurement
+    lambda: |-
+      return id(recirculation_return_temp).state;
+    filters:
+      - sliding_window_moving_average:
+          window_size: 12
+          send_every: 1
+          send_first_at: 1        
+
+  - platform: dallas
+    address: 0x053ce1d458f79628
+    name: "DHW Supply Temp"
+    id: dhw_supply_temp
+    dallas_id: supply_hub
+    filters:
+      - filter_out: NAN
+
+  - platform: template
+    name: "DHW Supply Temp 2min Avg"
+    id: dhw_supply_temp_2min_avg
+    update_interval: 10s
+    unit_of_measurement: "°C"    
+    device_class: temperature
+    state_class: measurement
+    lambda: |-
+      return id(dhw_supply_temp).state;
+    filters:
+      - sliding_window_moving_average:
+          window_size: 12
+          send_every: 1
+          send_first_at: 1
+
+binary_sensor:
+  - platform: template
+    name: "Should Run Pump"
+    id: dhw_should_run_pump
+    lambda: |-
+      if (id(pump_thermostat).action != climate::CLIMATE_ACTION_HEATING) {
+        return false;
+      }
+      if (id(dhw_supply_temp).state - 0.5 > id(dhw_supply_temp_2min_avg).state) {
+        return true;
+      }
+      return false;
+    on_press:
+      then:
+        - switch.turn_on: pump_power
+    on_release:
+      then:
+        - switch.turn_off: pump_power
 
 switch:
   - platform: gpio
     id: pump_power
     name: "Pump Power"
-    pin: 10
+    pin:
+      number: 10
+      mode:
+        output: true
+        pulldown: true
+
+output:
+  - platform: gpio
+    id: dummy_output
+    pin:
+      number: GPIO4
+      mode:
+        output: true
+        pullup: true
+      inverted: true
 
 climate:
   - platform: bang_bang
     name: "Pump Thermostat"
     id: pump_thermostat
     sensor: recirculation_return_temp
-    heat_action:
-      - switch.turn_on: pump_power
-    idle_action:
-      - switch.turn_off: pump_power
+    heat_action: []
+    idle_action: []
     visual:
       max_temperature: 50
       min_temperature: 0
