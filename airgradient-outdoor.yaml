@@ -12,7 +12,6 @@ substitutions:
   id: "1"
   node_name: "airgradient-open-air"
   display_name: "AirGradient Open Air"
-  upper_devicename: ${display_name}
   devicename: ${node_name}
   # Only trigger the particle sensor every 3 minutes so it can go into sleep mode and extend its operational lifetime.
   # Here as a substitution mostly to ensure consistent use in this file (several calculations rely on this 3min value).
@@ -41,12 +40,11 @@ globals:
     type: std::vector<float>
     restore_value: no
 
-esphome:
-  name: "${devicename}-${id}"
-  friendly_name: "${upper_devicename} ${id}"
-  # Automatically add the mac address to the name
-  # so you can use a single firmware for all devices
-  # name_add_mac_suffix: true
+wifi:
+  manual_ip:
+    static_ip: 10.73.95.49
+    gateway: 10.73.95.1
+    subnet: 255.255.255.0
 
 # Used to support POST request to send data to AirGradient
 # https://esphome.io/components/http_request.html
@@ -82,7 +80,7 @@ interval:
             String jsonString;
             StaticJsonDocument<1024> doc;
 
-            doc["wifi"] = id(airgradient_wifi_signal).state;
+            doc["wifi"] = id(wifi_strength).state;
 
             doc["pm01"] = to_string(id(pm_1_0).state);
             doc["pm02"] = to_string(id(pm_2_5).state);
@@ -160,13 +158,13 @@ uart:
 text_sensor:
   - platform: template
     id: aqi_category
-    name: "${upper_devicename} AQI Category"
+    name: "AQI Category"
     icon: "mdi:weather-windy-variant"
     update_interval: 15min
 
   - platform: template
     id: nowcast_category
-    name: "${upper_devicename} NowCast Category"
+    name: "NowCast Category"
     icon: "mdi:weather-windy-variant"
     update_interval: 15min
 
@@ -177,40 +175,40 @@ sensor:
     update_interval: $pm_update_interval
     pm_1_0:
       id: pm1_1_0
-      name: "${upper_devicename} Particulate Matter <1.0µm Concentration (1)"
+      name: "Particulate Matter <1.0µm Concentration (1)"
       disabled_by_default: true
     pm_2_5:
       id: pm1_2_5
-      name: "${upper_devicename} Particulate Matter <2.5µm Concentration (1)"
+      name: "Particulate Matter <2.5µm Concentration (1)"
       disabled_by_default: true
     pm_10_0:
       id: pm1_10_0
-      name: "${upper_devicename} Particulate Matter <10.0µm Concentration (1)"
+      name: "Particulate Matter <10.0µm Concentration (1)"
       disabled_by_default: true
     pm_0_3um:
       id: pm1_0_3um
-      name: "${upper_devicename} Particulate Matter >0.3µm Count (1)"
+      name: "Particulate Matter >0.3µm Count (1)"
       disabled_by_default: true
     pm_0_5um:
       id: pm1_0_5um
-      name: "${upper_devicename} Particulate Matter >0.5µm Count (1)"
+      name: "Particulate Matter >0.5µm Count (1)"
       disabled_by_default: true
     pm_1_0um:
       id: pm1_1_0um
-      name: "${upper_devicename} Particulate Matter >1.0µm Count (1)"
+      name: "Particulate Matter >1.0µm Count (1)"
       disabled_by_default: true
     pm_2_5um:
       id: pm1_2_5um
-      name: "${upper_devicename} Particulate Matter >2.5µm Count (1)"
+      name: "Particulate Matter >2.5µm Count (1)"
       disabled_by_default: true
     temperature:
       id: pm1_temperature
-      name: "${upper_devicename} Temperature (1)"
+      name: "Temperature (1)"
       disabled_by_default: true
     humidity:
       id: pm1_humidity
       accuracy_decimals: 1
-      name: "${upper_devicename} Relative Humidity (1)"
+      name: "Relative Humidity (1)"
       disabled_by_default: true
 
   - platform: pmsx003
@@ -219,46 +217,46 @@ sensor:
     update_interval: $pm_update_interval
     pm_1_0:
       id: pm2_1_0
-      name: "${upper_devicename} Particulate Matter <1.0µm Concentration (2)"
+      name: "Particulate Matter <1.0µm Concentration (2)"
       disabled_by_default: true
     pm_2_5:
       id: pm2_2_5
-      name: "${upper_devicename} Particulate Matter <2.5µm Concentration (2)"
+      name: "Particulate Matter <2.5µm Concentration (2)"
       disabled_by_default: true
     pm_10_0:
       id: pm2_10_0
-      name: "${upper_devicename} Particulate Matter <10.0µm Concentration (2)"
+      name: "Particulate Matter <10.0µm Concentration (2)"
       disabled_by_default: true
     pm_0_3um:
       id: pm2_0_3um
-      name: "${upper_devicename} Particulate Matter >0.3µm Count (2)"
+      name: "Particulate Matter >0.3µm Count (2)"
       disabled_by_default: true
     pm_0_5um:
       id: pm2_0_5um
-      name: "${upper_devicename} Particulate Matter >0.5µm Count (2)"
+      name: "Particulate Matter >0.5µm Count (2)"
       disabled_by_default: true
     pm_1_0um:
       id: pm2_1_0um
-      name: "${upper_devicename} Particulate Matter >1.0µm Count (2)"
+      name: "Particulate Matter >1.0µm Count (2)"
       disabled_by_default: true
     pm_2_5um:
       id: pm2_2_5um
-      name: "${upper_devicename} Particulate Matter >2.5µm Count (2)"
+      name: "Particulate Matter >2.5µm Count (2)"
       disabled_by_default: true
     temperature:
       id: pm2_temperature
-      name: "${upper_devicename} Temperature (2)"
+      name: "Temperature (2)"
       disabled_by_default: true
     humidity:
       id: pm2_humidity
       accuracy_decimals: 1
-      name: "${upper_devicename} Relative Humidity (2)"
+      name: "Relative Humidity (2)"
       disabled_by_default: true
 
   # Calculate the average values across both PMS5003T sensors
   - platform: template
     id: temperature
-    name: "${upper_devicename} Temperature"
+    name: "Temperature"
     icon: mdi:thermometer
     device_class: temperature
     accuracy_decimals: 1
@@ -266,7 +264,7 @@ sensor:
     lambda: return (id(pm1_temperature).state + id(pm2_temperature).state) / 2.0;
   - platform: template
     id: humidity
-    name: "${upper_devicename} Relative Humidity"
+    name: "Relative Humidity"
     icon: mdi:water-percent
     device_class: humidity
     accuracy_decimals: 1
@@ -274,7 +272,7 @@ sensor:
     lambda: return (id(pm1_humidity).state + id(pm2_humidity).state) / 2.0;
   - platform: template
     id: pm_1_0
-    name: "${upper_devicename} Particulate Matter <1.0µm Concentration"
+    name: "Particulate Matter <1.0µm Concentration"
     icon: mdi:chemical-weapon
     device_class: pm1
     accuracy_decimals: 0
@@ -283,7 +281,7 @@ sensor:
     lambda: return (id(pm1_1_0).state + id(pm2_1_0).state) / 2.0;
   - platform: template
     id: pm_2_5
-    name: "${upper_devicename} Particulate Matter <2.5µm Concentration"
+    name: "Particulate Matter <2.5µm Concentration"
     icon: mdi:chemical-weapon
     device_class: pm25
     accuracy_decimals: 0
@@ -292,7 +290,7 @@ sensor:
     lambda: return (id(pm1_2_5).state + id(pm2_2_5).state) / 2.0;
   - platform: template
     id: pm_10_0
-    name: "${upper_devicename} Particulate Matter <10.0µm Concentration"
+    name: "Particulate Matter <10.0µm Concentration"
     icon: mdi:chemical-weapon
     device_class: pm10
     accuracy_decimals: 0
@@ -301,7 +299,7 @@ sensor:
     lambda: return (id(pm1_10_0).state + id(pm2_10_0).state) / 2.0;
   - platform: template
     id: pm_0_3um
-    name: "${upper_devicename} Particulate Matter >0.3µm Count"
+    name: "Particulate Matter >0.3µm Count"
     icon: mdi:blur
     accuracy_decimals: 0
     unit_of_measurement: /dL
@@ -309,7 +307,7 @@ sensor:
     lambda: return (id(pm1_0_3um).state + id(pm2_0_3um).state) / 2.0;
   - platform: template
     id: pm_0_5um
-    name: "${upper_devicename} Particulate Matter >0.5µm Count"
+    name: "Particulate Matter >0.5µm Count"
     icon: mdi:blur
     accuracy_decimals: 0
     unit_of_measurement: /dL
@@ -317,7 +315,7 @@ sensor:
     lambda: return (id(pm1_0_5um).state + id(pm2_0_5um).state) / 2.0;
   - platform: template
     id: pm_1_0um
-    name: "${upper_devicename} Particulate Matter >1.0µm Count"
+    name: "Particulate Matter >1.0µm Count"
     icon: mdi:blur
     accuracy_decimals: 0
     unit_of_measurement: /dL
@@ -325,14 +323,10 @@ sensor:
     lambda: return (id(pm1_1_0um).state + id(pm2_1_0um).state) / 2.0;
   - platform: template
     id: pm_2_5um
-    name: "${upper_devicename} Particulate Matter >2.5µm Count"
+    name: "Particulate Matter >2.5µm Count"
     icon: mdi:blur
     accuracy_decimals: 0
     unit_of_measurement: /dL
     update_interval: $pm_update_interval
     lambda: return (id(pm1_2_5um).state + id(pm2_2_5um).state) / 2.0;
 
-  - platform: wifi_signal
-    id: airgradient_wifi_signal
-    name: "Wifi Strength"
-    update_interval: 1min
