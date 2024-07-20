@@ -1,0 +1,62 @@
+substitutions:
+  node_name: "holiday-lights"
+  display_name: "Holiday Lights"
+
+packages:
+  device_base: !include common/device_base.yaml
+  web_server: !include common/web_server.yaml
+
+esphome:
+  platform: ESP8266
+  board: esp01_1m
+
+logger:
+  level: DEBUG
+
+wifi:
+  manual_ip:
+    static_ip: 10.73.95.59
+    gateway: 10.73.95.1
+    subnet: 255.255.255.0
+
+wled:
+
+light:
+  - platform: neopixelbus
+    type: WRGB
+    variant: SK6812
+    num_leds: 60
+    pin: GPIO2
+    name: "Light One"
+    id: light_one
+    internal: true
+
+  - platform: neopixelbus
+    type: WRGB
+    variant: SK6812
+    num_leds: 60
+    pin: GPIO5    
+    name: "Light Two"
+    id: light_two
+    internal: true
+
+  - platform: partition
+    name: "Front Lights"
+    segments:
+      - id: light_two
+        from: 0
+        to: 59
+        reversed: true
+      - id: light_one
+        from: 0
+        to: 59
+
+    effects:
+      - addressable_rainbow:
+          name: Rainbow
+          width: 80
+          speed: 5
+      - addressable_twinkle:
+          name: Twinkle
+          twinkle_probability: 50%
+      - wled:
