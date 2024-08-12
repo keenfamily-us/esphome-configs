@@ -1,0 +1,30 @@
+substitutions:
+  node_name: "ezsalt"
+  display_name: "EZSalt"
+
+packages:
+  device_base: !include common/device_base.yaml
+  web_server: !include common/web_server.yaml
+  bluetooth_proxy: !include common/bluetooth_proxy.yaml
+
+esp32:
+  board: nodemcu-32s
+
+i2c:
+  sda: D6
+  scl: D7
+  scan: True
+
+sensor:
+  - platform: vl53l0x
+    name: softener1_salt_level
+    update_interval: 60s
+    address: 0x29
+    unit_of_measurement: "Inches"
+    device_class: "distance"
+    state_class: "measurement"
+    accuracy_decimals: 1
+    filters:
+      - multiply: 39.37  # convert from mm to inches
+      - offset: -35      # height of salt container
+      - multiply: -1     # back to a positive value
