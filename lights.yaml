@@ -59,4 +59,20 @@ light:
       - addressable_twinkle:
           name: Twinkle
           twinkle_probability: 50%
+      - addressable_lambda:
+          name: Halloween
+          update_interval: 16ms
+          lambda: |-
+            static Color orange = Color(255, 165, 0, 0);
+            static Color purple = Color(148, 0, 211, 0);
+            static Color green  = Color(0, 255, 0, 0);
+            
+            for (int i = it.size() - 1; i > 0; i--) {
+              if ((i % 3) == 0)
+                it[i] = orange;
+              if ((i % 3) == 1)
+                it[i] = purple;
+              if ((i % 3) == 2)
+                it[i] = green;
+            }
       - wled:

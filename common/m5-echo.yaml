@@ -1,0 +1,30 @@
+packages:
+  device_base: !include device_base.yaml
+  web_server: !include web_server.yaml
+
+esp32:
+  board: m5stack-atom
+  framework:
+    type: arduino
+
+i2s_audio:
+  - id: i2s_audio_bus
+    i2s_lrclk_pin: GPIO33
+    i2s_bclk_pin: GPIO19
+
+media_player:
+  - platform: i2s_audio
+    id: media_out
+    name: None
+    dac_type: external
+    i2s_dout_pin: GPIO22
+    mode: mono
+
+button:
+  - platform: safe_mode
+    id: button_safe_mode
+    name: Safe Mode Boot
+
+  - platform: factory_reset
+    id: factory_reset_btn
+    name: Factory reset    

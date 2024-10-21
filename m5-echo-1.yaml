@@ -1,0 +1,12 @@
+substitutions:
+  node_name: "m5-echo-1"
+  display_name: "Echo 1"
+
+wifi:
+  manual_ip:
+    static_ip: 10.73.95.124
+    gateway: 10.73.95.1
+    subnet: 255.255.255.0
+
+packages:
+  m5_echo: !include common/m5-echo.yaml
