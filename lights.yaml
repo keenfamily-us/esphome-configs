@@ -35,7 +35,7 @@ light:
     type: WRGB
     variant: SK6812
     num_leds: 60
-    pin: GPIO5    
+    pin: GPIO5
     name: "Light Two"
     id: light_two
     internal: true
@@ -64,12 +64,26 @@ light:
           update_interval: 16ms
           lambda: |-
             static Color colors[3] = {
-              // r    g    b  w
-              {255, 165,   0, 0}, // orange
-              {148,   0, 211, 0}, // purple
-              {0,   255,   0, 0}, // green
+              // r    g    b    w
+              {255, 165,   0,   0}, // orange
+              {148,   0, 211,   0}, // purple
+              {  0, 255,   0,   0}, // green
             };
-            
+
+            for (int i = it.size() - 1; i > 0; i--) {
+              it[i] = colors[i % 3];
+            }
+      - addressable_lambda:
+          name: Christmas
+          update_interval: 16ms
+          lambda: |-
+            static Color colors[3] = {
+              // r    g    b    w
+              {255,   0,   0,   0}, // red
+              {  0, 255,   0,   0}, // green
+              {  0,   0,   0, 255}, // white
+            };
+
             for (int i = it.size() - 1; i > 0; i--) {
               it[i] = colors[i % 3];
             }
