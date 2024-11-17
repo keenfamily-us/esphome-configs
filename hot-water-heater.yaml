@@ -30,20 +30,20 @@ esp32:
   framework:
     type: arduino
 
-dallas:
+one_wire:
   - pin: GPIO3
+    platform: gpio
     id: return_hub
-    update_interval: 10s
   - pin: GPIO5
+    platform: gpio
     id: supply_hub
-    update_interval: 10s    
 
 sensor:
-  - platform: dallas
+  - platform: dallas_temp
     address: 0x6f01193828e0db28
     name: "Recirculation Return Temp"
     id: recirculation_return_temp
-    dallas_id: return_hub
+    one_wire_id: return_hub
     filters:
       - filter_out: NAN
 
@@ -62,11 +62,11 @@ sensor:
           send_every: 1
           send_first_at: 1        
 
-  - platform: dallas
+  - platform: dallas_temp
     address: 0x053ce1d458f79628
     name: "DHW Supply Temp"
     id: dhw_supply_temp
-    dallas_id: supply_hub
+    one_wire_id: supply_hub
     filters:
       - filter_out: NAN
 
@@ -90,6 +90,9 @@ binary_sensor:
     name: "Should Run Pump"
     id: dhw_should_run_pump
     lambda: |-
+      if (id(pump_power_override).state) {
+        return true;
+      }
       if (id(pump_thermostat).action != climate::CLIMATE_ACTION_HEATING) {
         return false;
       }
@@ -113,6 +116,15 @@ switch:
       mode:
         output: true
         pulldown: true
+
+  - platform: template
+    id: pump_power_override
+    name: "Pump Power Override"
+    optimistic: true
+    turn_on_action:
+      then:
+        - delay: 5min
+        - switch.turn_off: pump_power_override
 
 output:
   - platform: gpio
