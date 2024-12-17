@@ -18,12 +18,6 @@ wifi:
   ssid: ${wifi_ssid}
   password: ${wifi_password}
 
-  ap:
-    ssid: "${node_name}-ap"
-    password: ${fallback_ssid_password}
-
-captive_portal:
-
 logger:
 
 ota:

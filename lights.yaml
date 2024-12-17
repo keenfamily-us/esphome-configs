@@ -42,6 +42,7 @@ light:
 
   - platform: partition
     name: "Front Lights"
+    restore_mode: RESTORE_DEFAULT_OFF
     segments:
       - id: light_two
         from: 0
@@ -61,9 +62,8 @@ light:
           twinkle_probability: 50%
       - addressable_lambda:
           name: Halloween
-          update_interval: 16ms
           lambda: |-
-            static Color colors[3] = {
+            Color colors[3] = {
               // r    g    b    w
               {255, 165,   0,   0}, // orange
               {148,   0, 211,   0}, // purple
@@ -75,9 +75,8 @@ light:
             }
       - addressable_lambda:
           name: Christmas
-          update_interval: 16ms
           lambda: |-
-            static Color colors[3] = {
+            Color colors[3] = {
               // r    g    b    w
               {255,   0,   0,   0}, // red
               {  0, 255,   0,   0}, // green

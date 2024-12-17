@@ -5,11 +5,11 @@ esp32:
   variant: ESP32C3
   board: esp32-c3-devkitm-1
 
-esphome:
-  platformio_options:
-    board_build.mcu: esp32c3
-    board_build.variant: esp32c3  
-    board_build.f_flash: 40000000L
-    board_build.flash_mode: dio
-    board_build.flash_size: 4MB
+# esphome:
+#   platformio_options:
+#     board_build.mcu: esp32c3
+#     board_build.variant: esp32c3  
+#     board_build.f_flash: 40000000L
+#     board_build.flash_mode: dio
+#     board_build.flash_size: 4MB
 

@@ -1,0 +1,31 @@
+substitutions:
+  node_name: kitchen-door-light
+  display_name: Kitchen Slider Door Light
+
+packages:
+  esp32_c3_devkit_m1: !include common/esp32_c3_devkit_m1.yaml
+  web_server: !include common/web_server.yaml  
+
+logger:
+  level: DEBUG
+
+wled:
+
+light:
+  - platform: neopixelbus
+    type: RBWG
+    variant: SK6812
+    num_leds: 11
+    pin: 8
+    internal: true
+    id: light_int
+
+  - platform: partition
+    name: "Light One"
+    segments:
+      - id: light_int
+        from: 1
+        to: 10
+    restore_mode: RESTORE_AND_OFF    
+    effects:
+      - wled:
