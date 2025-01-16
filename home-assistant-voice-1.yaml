@@ -1,0 +1,24 @@
+substitutions:
+  node_name: "home-assistant-voice-1"
+  display_name: "Home Assistant Voice PE"
+
+packages:
+  device_base: !include common/device_base.yaml
+  web_server: !include common/web_server.yaml  
+  home-assistant-voice:
+    url: https://github.com/esphome/home-assistant-voice-pe
+    files:
+      - home-assistant-voice.yaml
+
+http_request:
+
+wifi:
+  on_connect:
+    - script.execute: control_leds
+  manual_ip:
+    static_ip: 10.73.95.79
+    gateway: 10.73.95.1
+    subnet: 255.255.255.0
+
+voice_assistant:
+  noise_suppression_level: 2
