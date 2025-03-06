@@ -5,10 +5,9 @@ substitutions:
 packages:
   device_base: !include common/device_base.yaml
   web_server: !include common/web_server.yaml
-  bluetooth_proxy: !include common/bluetooth_proxy.yaml
 
-esp32:
-  board: nodemcu-32s
+esp8266:
+  board: d1_mini
 
 i2c:
   sda: D6
@@ -28,3 +27,7 @@ sensor:
       - multiply: 39.37  # convert from mm to inches
       - offset: -35      # height of salt container
       - multiply: -1     # back to a positive value
+      - median:
+          window_size: 7
+          send_every: 4
+          send_first_at: 3        

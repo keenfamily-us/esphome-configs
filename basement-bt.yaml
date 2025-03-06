@@ -3,6 +3,6 @@ substitutions:
   display_name: Basement Bluetooth Proxy
 
 packages:
-  esp32_c3_devkit_m1: !include common/esp32_c3_devkit_m1.yaml
+  esp32dev: !include common/esp32dev.yaml
   bluetooth_proxy: !include common/bluetooth_proxy.yaml
   web_server: !include common/web_server.yaml
