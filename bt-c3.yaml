@@ -1,0 +1,11 @@
+substitutions:
+  node_name: btproxy
+  display_name: Bluetooth Proxy
+
+packages:
+  esp32_c3_devkit_m1: !include common/esp32_c3_devkit_m1.yaml
+  bluetooth_proxy: !include common/bluetooth_proxy.yaml
+  web_server: !include common/web_server.yaml
+
+esphome:
+  name_add_mac_suffix: true
