@@ -1,0 +1,24 @@
+substitutions:
+  node_name: garage-zwave
+  display_name: Garage ZWave
+
+packages:
+  esp32s3-wroom1: !include common/esp32-s3-wroom-1.yaml
+  bluetooth_proxy: !include common/bluetooth_proxy.yaml
+  web_server: !include common/web_server.yaml
+
+external_components:
+  - source: github://oxan/esphome-stream-server
+
+usb_uart:
+  - type: cdc_acm
+    channels:
+      - id: zwave_uart
+        baud_rate: 115200
+        buffer_size: 1024
+    vid: 0x1A86
+    pid: 0x55D4
+
+stream_server:
+  uart_id: zwave_uart
+  port: 1234

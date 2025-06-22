@@ -1,0 +1,15 @@
+packages:
+  device_base: !include device_base.yaml
+
+esp32:
+  flash_size: 16MB
+  board: esp32-s3-devkitc-1
+  variant: esp32s3  
+
+esphome:
+  platformio_options:
+    board_build.flash_mode: dio
+
+psram:
+  mode: octal
+  speed: 80MHz  
