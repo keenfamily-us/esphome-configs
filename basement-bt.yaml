@@ -6,3 +6,62 @@ packages:
   esp32dev: !include common/esp32dev.yaml
   bluetooth_proxy: !include common/bluetooth_proxy.yaml
   web_server: !include common/web_server.yaml
+
+logger:
+  level: DEBUG # Required for the tracker to show the device
+
+# [09:50:07][D][airthings_ble:023]: Found AirThings device Serial:2930230361 (MAC: 7C:E2:69:82:83:8F) <= KITCHEN
+# [09:54:08][D][airthings_ble:023]: Found AirThings device Serial:2930255717 (MAC: 40:79:12:13:7A:95) <= BASEMENT
+
+ble_client:
+  - mac_address: 7C:E2:69:82:83:8F
+    id: airthings_kitchen
+  - mac_address: 40:79:12:13:7A:95
+    id: airthings_basement
+
+sensor:
+  - platform: airthings_wave_plus
+    ble_client_id: airthings_kitchen
+    update_interval: 5min # default
+    battery_update_interval: 24h # default
+    temperature:
+      name: "Kitchen WavePlus Temperature"
+    radon:
+      name: "Kitchen WavePlus Radon"
+    radon_long_term:
+      name: "Kitchen WavePlus Radon Long Term"
+    pressure:
+      name: "Kitchen WavePlus Pressure"
+    humidity:
+      name: "Kitchen WavePlus Humidity"
+    co2:
+      name: "Kitchen WavePlus CO2"
+    tvoc:
+      name: "Kitchen WavePlus VOC"
+    illuminance:
+      name: "Kitchen WavePlus ambient light"
+    battery_voltage:
+      name: "Kitchen WavePlus Battery Voltage"
+
+  - platform: airthings_wave_plus
+    ble_client_id: airthings_basement
+    update_interval: 5min # default
+    battery_update_interval: 24h # default
+    temperature:
+      name: "Basement WavePlus Temperature"
+    radon:
+      name: "Basement WavePlus Radon"
+    radon_long_term:
+      name: "Basement WavePlus Radon Long Term"
+    pressure:
+      name: "Basement WavePlus Pressure"
+    humidity:
+      name: "Basement WavePlus Humidity"
+    co2:
+      name: "Basement WavePlus CO2"
+    tvoc:
+      name: "Basement WavePlus VOC"
+    illuminance:
+      name: "Basement WavePlus ambient light"
+    battery_voltage:
+      name: "Basement WavePlus Battery Voltage"      

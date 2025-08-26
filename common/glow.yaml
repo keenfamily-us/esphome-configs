@@ -4,7 +4,7 @@ substitutions:
   pin_pullup: "true"
   pin_pulldown: "false"
   pulses_per_kwh: "1000"
-  internal_filter: "100ms"
+  internal_filter: "10ms"
 
 sensor:
   - platform: pulse_meter
@@ -24,13 +24,16 @@ sensor:
         pulldown: ${pin_pulldown}
     
     internal_filter: ${internal_filter}
-    internal_filter_mode: PULSE
+    internal_filter_mode: EDGE
     timeout: 30s
   
     filters:
       # multiply value = (60 / imp value) * 1000
       # - multiply: 60
       - lambda: return x * ((60.0 / ${pulses_per_kwh}) * 1000.0);
+      - clamp:
+          max_value: 48000.0
+          ignore_out_of_range: true
     total:
       name: '${sensor_name} Total Energy'
       id: ${sensor_id}_total_energy

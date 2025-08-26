@@ -1,6 +1,6 @@
 substitutions:
-  node_name: garage-zwave
-  display_name: Garage ZWave
+  node_name: house-zwave
+  display_name: House ZWave
 
 packages:
   esp32s3-wroom1: !include common/esp32-s3-wroom-1.yaml
@@ -16,9 +16,10 @@ usb_uart:
       - id: zwave_uart
         baud_rate: 115200
         buffer_size: 1024
-    vid: 0x1A86
-    pid: 0x55D4
+    vid: 0x0658
+    pid: 0x0200
 
 stream_server:
   uart_id: zwave_uart
   port: 1234
+

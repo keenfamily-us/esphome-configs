@@ -3,18 +3,8 @@ substitutions:
   display_name: "Holiday Lights 2"
 
 packages:
-  device_base: !include common/device_base.yaml
+  esp8266: !include common/esp8266.yaml
   web_server: !include common/web_server.yaml
-
-esphome:
-  platform: ESP8266
-  board: esp12e
-
-wifi:
-  manual_ip:
-    static_ip: 10.73.95.58
-    gateway: 10.73.95.1
-    subnet: 255.255.255.0  
 
 logger:
   level: DEBUG
@@ -32,7 +22,7 @@ light:
     type: WRGB
     variant: SK6812
     num_leds: 60
-    pin: GPIO2
+    pin: GPIO1
     name: "Light One"
     id: light_one
     internal: true
@@ -41,7 +31,7 @@ light:
     type: WRGB
     variant: SK6812
     num_leds: 60
-    pin: GPIO4
+    pin: GPIO2
     name: "Light Two"
     id: light_two
     internal: true
