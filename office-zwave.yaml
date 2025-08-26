@@ -6,26 +6,5 @@ packages:
   esp32s3-wroom1: !include common/esp32-s3-wroom-1.yaml
   bluetooth_proxy: !include common/bluetooth_proxy.yaml
   web_server: !include common/web_server.yaml
-
-external_components:
-  - source: github://oxan/esphome-stream-server
-
-wifi:
-  manual_ip:
-    static_ip: 10.73.95.83
-    gateway: 10.73.95.1
-    subnet: 255.255.255.0
-
-usb_uart:
-  - type: cdc_acm
-    channels:
-      - id: zwave_uart
-        baud_rate: 115200
-        buffer_size: 1024
-    vid: 0
-    pid: 0
-
-stream_server:
-  uart_id: zwave_uart
-  port: 1234
+  usb_cdc: !include common/usb-cdc.yaml
 

@@ -1,0 +1,16 @@
+external_components:
+  - source: github://oxan/esphome-stream-server
+
+usb_uart:
+  - type: cdc_acm
+    channels:
+      - id: cdc_uart
+        baud_rate: 115200
+        buffer_size: 1024
+    vid: 0
+    pid: 0
+
+stream_server:
+  uart_id: cdc_uart
+  port: 1234
+
