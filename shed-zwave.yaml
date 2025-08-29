@@ -1,0 +1,10 @@
+substitutions:
+  node_name: shed-zwave
+  display_name: Shed ZWave
+
+packages:
+  esp32s3-wroom1: !include common/esp32-s3-wroom-1.yaml
+  bluetooth_proxy: !include common/bluetooth_proxy.yaml
+  web_server: !include common/web_server.yaml
+  usb_cdc: !include common/usb-cdc.yaml
+

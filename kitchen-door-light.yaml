@@ -4,17 +4,23 @@ substitutions:
 
 packages:
   esp32_c3_devkit_m1: !include common/esp32_c3_devkit_m1.yaml
+  bluetooth_proxy: !include common/bluetooth_proxy.yaml
   web_server: !include common/web_server.yaml  
 
 logger:
   level: DEBUG
 
-wled:
+wifi:
+  manual_ip:
+    static_ip: 10.73.95.180
+    gateway: 10.73.95.1
+    subnet: 255.255.255.0
 
 light:
-  - platform: neopixelbus
-    type: RBWG
-    variant: SK6812
+  - platform: esp32_rmt_led_strip
+    rgb_order: RBG
+    is_rgbw: true
+    chipset: SK6812
     num_leds: 11
     pin: 8
     internal: true
@@ -27,5 +33,3 @@ light:
         from: 1
         to: 10
     restore_mode: RESTORE_AND_OFF    
-    effects:
-      - wled:
