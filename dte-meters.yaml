@@ -5,6 +5,7 @@ substitutions:
 packages:
   esp32_c3_devkit_m1: !include common/esp32dev.yaml
   web_server: !include common/web_server.yaml
+  wifi: !include common/wifi.yaml
 
   house_meter: !include
     file: common/glow.yaml

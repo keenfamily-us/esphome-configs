@@ -8,6 +8,7 @@ packages:
   device_base: !include common/device_base.yaml
   web_server: !include common/web_server.yaml
   bluetooth_proxy: !include common/bluetooth_proxy.yaml
+  wifi: !include common/wifi.yaml
 
 esp32:
   board: nodemcu-32s  

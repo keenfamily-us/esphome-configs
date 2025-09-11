@@ -4,6 +4,7 @@ substitutions:
 
 packages:
   m5_echo: !include common/m5-echo.yaml
+  wifi: !include common/wifi.yaml
 
 light:
   - platform: esp32_rmt_led_strip

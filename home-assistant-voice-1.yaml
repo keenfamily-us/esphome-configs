@@ -4,7 +4,8 @@ substitutions:
 
 packages:
   device_base: !include common/device_base.yaml
-  web_server: !include common/web_server.yaml  
+  web_server: !include common/web_server.yaml
+  wifi: !include common/wifi.yaml
   home-assistant-voice:
     url: https://github.com/esphome/home-assistant-voice-pe
     files:

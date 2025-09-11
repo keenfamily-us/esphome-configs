@@ -5,6 +5,7 @@ substitutions:
 packages:
   esp8266: !include common/esp8266.yaml
   web_server: !include common/web_server.yaml
+  wifi: !include common/wifi.yaml
 
 logger:
   level: DEBUG

@@ -20,6 +20,7 @@ substitutions:
 packages:
   device_base: !include common/esp32_c3_devkit_m1.yaml
   web_server: !include common/web_server.yaml
+  wifi: !include common/wifi.yaml
 
 globals:
   - id: aqi_delay_mins

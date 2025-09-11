@@ -1,6 +1,7 @@
 packages:
   device_base: !include device_base.yaml
   web_server: !include web_server.yaml
+  wifi: !include wifi.yaml
 
 esp8266:
   board: nodemcuv2
@@ -22,10 +23,6 @@ binary_sensor:
     name: "Status"
 
 sensor:
-  - platform: wifi_signal
-    name: "WiFi Signal"
-    update_interval: 60s
-
   - platform: cse7766
     current:
       name: "Current"

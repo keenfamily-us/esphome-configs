@@ -7,3 +7,4 @@ packages:
   bluetooth_proxy: !include common/bluetooth_proxy.yaml
   web_server: !include common/web_server.yaml
   usb_cdc: !include common/usb-cdc.yaml
+  wifi: !include common/wifi.yaml

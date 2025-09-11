@@ -5,6 +5,7 @@ substitutions:
 packages:
   esp32_c3_devkit_m1: !include common/esp32_c3_devkit_m1.yaml
   web_server: !include common/web_server.yaml
+  wifi: !include common/wifi.yaml  
 
 esphome:
   name_add_mac_suffix: true

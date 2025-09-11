@@ -6,6 +6,7 @@ packages:
   esp32dev: !include common/esp32dev.yaml
   bluetooth_proxy: !include common/bluetooth_proxy.yaml
   web_server: !include common/web_server.yaml
+  wifi: !include common/wifi.yaml  
 
 logger:
   level: DEBUG # Required for the tracker to show the device
