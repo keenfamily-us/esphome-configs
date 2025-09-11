@@ -1,0 +1,35 @@
+substitutions:
+  node_name: emporia-office-main
+  display_name: Emporia Office Main
+
+packages:
+  esp32dev: !include common/esp32dev.yaml
+
+# external_components:
+#   - source: github://emporia-vue-local/esphome@vue3
+#     components:
+#       - emporia_vue
+
+ethernet:
+  type: RTL8201
+  mdc_pin: GPIO32
+  mdio_pin: GPIO33
+  clk_mode: GPIO0_IN
+
+esp32:
+  framework:
+    type: esp-idf
+
+preferences:
+  # the default of 1min is far too short--flash chip is rated
+  # for approx 100k writes.
+  flash_write_interval: "48h"  
+
+# i2c:
+#   sda: 5
+#   scl: 18
+#   scan: false
+#   frequency: 400kHz
+#   timeout: 1ms
+#   id: i2c_a
+    

@@ -1,2 +1,2 @@
-/secrets.yaml
-/.esphome/
+common/secrets.yaml
+.esphome/

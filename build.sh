@@ -3,9 +3,9 @@
 set -x
 set -eo pipefail
 
-trap "rm common/device_base.yaml" EXIT
+trap "rm common/secrets.yaml" EXIT
 
-op inject --in-file common/device_base.yaml.in --out-file common/device_base.yaml
+op inject --in-file common/secrets.yaml.in --out-file common/secrets.yaml
 
 command=$1
 shift
