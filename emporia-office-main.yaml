@@ -2,13 +2,30 @@ substitutions:
   node_name: emporia-office-main
   display_name: Emporia Office Main
 
+  # 0.022 is used as the default as starting point but may need adjusted to ensure accuracy
+  # To calculate new calibration value use the formula <in-use calibration value> * <accurate voltage> / <reporting voltage>
+  ##
+  # NOTE: your values will be different / calculate your own!
+  calibration_factor_a: "0.0194"
+  calibration_factor_b: "0.0194"
+  # This is a scalar offset to apply to the frequency sensor.
+  frequency_cal: "-.3"
+
+  # Adjust as needed here
+  c01_name: "Pool A"
+  c02_name: "Pool B"
+  c03_name: "Shed A"
+  c04_name: "Shed B"
+  c05_name: "Media Panel"
+  c06_name: "Refrigerator"
+
 packages:
   esp32dev: !include common/esp32dev.yaml
 
-# external_components:
-#   - source: github://emporia-vue-local/esphome@vue3
-#     components:
-#       - emporia_vue
+external_components:
+  - source: github://emporia-vue-local/esphome@vue3
+    components:
+      - emporia_vue
 
 ethernet:
   type: RTL8201
@@ -23,13 +40,196 @@ esp32:
 preferences:
   # the default of 1min is far too short--flash chip is rated
   # for approx 100k writes.
-  flash_write_interval: "48h"  
+  flash_write_interval: "48h"
 
-# i2c:
-#   sda: 5
-#   scl: 18
-#   scan: false
-#   frequency: 400kHz
-#   timeout: 1ms
-#   id: i2c_a
-    
+i2c:
+  sda: 5
+  scl: 18
+  scan: false
+  frequency: 400kHz
+  timeout: 1ms
+  id: i2c_a
+
+# Cut down on repetition with common filter for each channel
+.defaultfilters:
+  - &moving_avg
+    # we capture a new sample every 0.24 seconds, so the time can
+    # be calculated from the number of samples as n * 0.24.
+    sliding_window_moving_average:
+      # we average over the past 2.88 seconds
+      window_size: 24
+      # we push a new value every 1.44 seconds
+      send_every: 12
+  # I wasn't super happy with how slow the above was. I would turn the microwave/range lights on and the draw would immediately be 70W but the
+  #    average was taking several refresh cycles to catch up.
+  - &ewa
+    exponential_moving_average:
+      alpha: 0.85
+      # I believe the units here is "samples", same math as above
+      send_every: 5
+      send_first_at: 1
+
+  # invert and filter out any values below 0. Seems to be needed for the Vue3 on ESPHome newer than 2024.03 ?
+  # In any case, this was correct for me. I did not get accurate values until I moved from `pos` to `invert`.
+  # See: https://github.com/emporia-vue-local/esphome/discussions/264#discussioncomment-9170097
+  - &invert
+    lambda: "return max(-x, 0.0f);"
+
+  # For reasons that do not make sense to me, the primary / main sensors need `pos` and not `invert`.
+  - &pos # filter out any values below 0.
+    lambda: "return max(x, 0.0f);"
+
+sensor:
+  - platform: emporia_vue
+    i2c_id: i2c_a
+    phases:
+      - id: phase_a
+        input: BLACK
+        calibration: ${calibration_factor_a}
+        voltage:
+          name: "Phase L Voltage"
+          # Voltage shouldn't change as often so we can use the moving average filter
+          filters: [*pos, *moving_avg]
+        #Frequency is not supported for the red and blue wires, only for the black wire.
+        frequency:
+          name: "L1 Frequency"
+          filters:
+            - offset: ${frequency_cal}
+            - *moving_avg
+      - id: phase_b
+        input: RED
+        calibration: ${calibration_factor_b}
+        voltage:
+          name: "Phase R Voltage"
+          # Voltage shouldn't change as often so we can use the moving average filter
+          filters: [*pos, *moving_avg]
+
+        phase_angle:
+          name: "Phase L Phase Angle"
+          # Phase Angle shouldn't change... ever so don't allocate ram for the average
+          filters: [*pos]
+
+    # NOTE: Verify the CT going to this device input also matches the phase/leg and that the phases match with the input/colors above
+    ct_clamps:
+      - input: "A"
+        phase_id: phase_a
+        power:
+          name: "Phase L Power"
+          id: phase_a_power
+          device_class: power
+          filters: [*invert, *ewa]
+
+      - input: "B"
+        phase_id: phase_b
+        # Verify the CT going to this device input also matches the phase/leg
+        power:
+          name: "Phase R Power"
+          id: phase_b_power
+          device_class: power
+          filters: [*invert, *ewa]
+
+      # Pay close attention to set the phase_id for each breaker by matching it to the phase/leg it connects to in the panel
+      - input: "1"
+        phase_id: phase_a
+        # Note: you do not need the `platform: copy` sensors. Everything under `power` is just like any other Sensor in ESPHome
+        # It's worth noting that the class/config/icon ... etc are already set to reasonable defaults but if you don't like the lightning bolt icon,
+        #    and you have a single appliance on a circuit, just change the icon to `mdi:fridge` or `mdi:oven` or whatever is appropriate.
+        power:
+          id: cir01
+          name: "${c01_name} Power"
+          filters: [*pos, *ewa]
+
+      - input: "2"
+        phase_id: phase_b
+        power:
+          id: cir02
+          name: "${c02_name} Power"
+          filters: [*pos, *ewa]
+
+      - input: "3"
+        phase_id: phase_a
+        power:
+          id: cir03
+          name: "${c03_name} Power"
+          filters: [*pos, *ewa]
+
+      - input: "4"
+        phase_id: phase_b
+        power:
+          id: cir04
+          name: "${c04_name} Power"
+          filters: [*pos, *ewa]
+
+      - input: "5"
+        phase_id: phase_b
+        power:
+          id: cir05
+          name: "${c05_name} Power"
+          filters: [*pos, *ewa]
+
+      - input: "6"
+        phase_id: phase_b
+        power:
+          id: cir06
+          name: "${c06_name} Power"
+          filters: [*invert, *ewa]                    
+
+  ##
+  # SENSORS
+  ##
+  # Instantaneous consumption
+  - name: "Pool Power"
+    platform: template
+    id: pool_power
+    lambda: return id(cir01).state + id(cir02).state;
+    update_interval: 1s
+    unit_of_measurement: "W"
+    device_class: power
+
+  - name: "Shed Power"
+    platform: template
+    id: shed_power
+    lambda: return id(cir03).state + id(cir04).state;
+    update_interval: 1s
+    unit_of_measurement: "W"
+    device_class: power    
+
+  - name: "Total Power"
+    platform: template
+    id: total_power
+    lambda: return id(phase_a_power).state + id(phase_b_power).state;
+    update_interval: 1s
+    unit_of_measurement: "W"
+    device_class: power
+    state_class: measurement
+
+  # The day's consumption
+  - name: "Total Daily Energy"
+    platform: total_daily_energy
+    power_id: total_power
+    accuracy_decimals: 0
+    unit_of_measurement: "Wh"
+
+  ##
+  # Per circuit Energy
+  ##
+  - name: "Pool Daily Energy"
+    power_id: pool_power
+    platform: total_daily_energy
+    accuracy_decimals: 0
+
+  - name: "Shed Daily Energy"
+    power_id: shed_power
+    platform: total_daily_energy
+    accuracy_decimals: 0
+
+  - name: "${c05_name} Daily Energy"
+    power_id: cir05
+    platform: total_daily_energy
+    accuracy_decimals: 0
+
+  - name: "${c06_name} Daily Energy"
+    power_id: cir06
+    platform: total_daily_energy
+    accuracy_decimals: 0
+
