@@ -4,9 +4,12 @@ substitutions:
 
 packages:
   esp32_c3_devkit_m1: !include common/esp32_c3_devkit_m1.yaml
-  bluetooth_proxy: !include common/bluetooth_proxy.yaml
   web_server: !include common/web_server.yaml  
   wifi: !include common/wifi.yaml
+
+esp32:
+  framework:
+    type: arduino
 
 logger:
   level: DEBUG
@@ -18,19 +21,34 @@ wifi:
     subnet: 255.255.255.0
 
 light:
-  - platform: esp32_rmt_led_strip
-    rgb_order: RBG
-    is_rgbw: true
-    chipset: SK6812
+  - platform: neopixelbus
+    type: RBWG
+    variant: SK6812
     num_leds: 11
     pin: 8
     internal: true
     id: light_int
 
   - platform: partition
-    name: "Light One"
+    name: "Full Bar"
     segments:
       - id: light_int
         from: 1
         to: 10
-    restore_mode: RESTORE_AND_OFF    
+    restore_mode: RESTORE_AND_OFF
+
+  - platform: partition
+    name: "Top Half"
+    segments:
+      - id: light_int
+        from: 1
+        to: 6
+    restore_mode: RESTORE_AND_OFF
+
+  - platform: partition
+    name: "Bottom Half"
+    segments:
+      - id: light_int
+        from: 6
+        to: 10
+    restore_mode: RESTORE_AND_OFF            
