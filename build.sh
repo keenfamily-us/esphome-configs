@@ -3,10 +3,6 @@
 set -x
 set -eo pipefail
 
-trap "rm common/secrets.yaml" EXIT
-
-op inject --in-file common/secrets.yaml.in --out-file common/secrets.yaml
-
 command=$1
 shift
 
@@ -16,4 +12,4 @@ else
     configs="$@"
 fi
 
-esphome $command $configs
+op run --env-file=.env -- esphome $command $configs
