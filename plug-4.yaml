@@ -1,6 +1,0 @@
-substitutions:
-  node_name: "plug-4"
-  display_name: "Plug 4"
-
-packages:
-  sonoff_s31: !include common/sonoff-s31.yaml
